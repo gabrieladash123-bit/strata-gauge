@@ -199,10 +199,7 @@ class StrataGauge(gl.Contract):
     results: TreeMap[str, str]
 
     def __init__(self):
-        self.plans = TreeMap()
-        self.observations = TreeMap()
-        self.remaining = TreeMap()
-        self.results = TreeMap()
+        pass
 
     @gl.public.write
     def create(self, plan_json: bytes) -> str:
