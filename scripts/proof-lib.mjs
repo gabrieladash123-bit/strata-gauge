@@ -27,7 +27,9 @@ export function canonical(value) {
 }
 
 export async function rpc(method, params = []) {
-  assert(["eth_chainId", "eth_gasPrice", "eth_getTransactionByHash"].includes(method));
+  assert([
+    "eth_chainId", "eth_gasPrice", "eth_getBalance", "eth_getTransactionCount", "eth_getTransactionByHash",
+  ].includes(method));
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },

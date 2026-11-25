@@ -33,13 +33,14 @@ function runCli(args, onHash) {
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, NO_COLOR: "1" },
     });
-    const stderr = [];
+    const stderr = [], stdout = [];
     child.stderr.on("data", chunk => stderr.push(chunk.toString()));
     child.stdin.on("error", error => { if (error.code !== "EPIPE") reject(error); });
     child.stdin.end(password + "\n");
     let journalEntry;
     const lines = createInterface({ input: child.stdout });
     lines.on("line", line => {
+      stdout.push(line);
       const hash = line.match(/(?:Deployment|Write) Transaction Hash:\s*(0x[\da-f]{64})/i)?.[1];
       if (hash && !journalEntry) {
         console.log("Submitted", args[0], args[2] ?? "", hash);
@@ -53,7 +54,11 @@ function runCli(args, onHash) {
       clearTimeout(timer);
       if (journalEntry) resolve(journalEntry);
       else if (code === 0 && !onHash) resolve();
-      else reject(new Error(`${args[0]} failed before returning a hash: ${stderr.join("").slice(-1500)}`));
+      else {
+        const output = (stdout.slice(-12).join("\n") + "\n" + stderr.join(""))
+          .replaceAll(password, "[redacted]").slice(-2500);
+        reject(new Error(`${args[0]} failed before returning a hash: ${output}`));
+      }
     });
   });
 }
@@ -74,16 +79,30 @@ const ledger = {
   account_addresses: authors.map(author => author.address), transactions: [],
 };
 const save = async () => writeFile(join(folder, "proof.json"), JSON.stringify(ledger, null, 2) + "\n");
+await save();
+for (const { address } of authors) {
+  assert.equal(BigInt(await rpc("eth_getBalance", [address, "latest"])), 0n, "Use unfunded StudioNet accounts");
+}
+console.log("Prepared unfunded StudioNet callers", ...ledger.account_addresses);
 
 async function send(label, actor, args, expectedError = null) {
   const author = authors[actor];
   await runCli(["account", "use", author.name]);
   const entry = { label, sender: author.address, expected_error: expectedError };
-  const hash = await runCli(args, async hashValue => {
-    entry.hash = hashValue;
-    ledger.transactions.push(entry);
-    await save();
-  });
+  const nonce = () => rpc("eth_getTransactionCount", [author.address, "pending"]);
+  const before = await nonce();
+  let hash;
+  try {
+    hash = await runCli(args, async hashValue => {
+      entry.hash = hashValue;
+      ledger.transactions.push(entry);
+      await save();
+    });
+  } catch (error) {
+    if (entry.hash) throw error;
+    const after = await nonce();
+    throw new Error(`Caller ${author.address} nonce ${before} → ${after}. ${error.message}`);
+  }
   const receipt = await finalized(hash);
   if (label === "deploy") {
     ledger.contract = receipt.to_address ?? receipt.recipient;
@@ -97,9 +116,9 @@ async function send(label, actor, args, expectedError = null) {
 }
 
 const state = async slots => assert.deepEqual(await getState(ledger.contract, study), expectedState(plan, slots));
-await send("deploy", 0, ["deploy", "--contract", sourcePath, "--fee-value", "0"]);
+await send("deploy", 0, ["deploy", "--contract", sourcePath]);
 const write = (label, actor, method, args, error) => (
-  send(label, actor, ["write", ledger.contract, method, "--fee-value", "0", "--args", ...args], error)
+  send(label, actor, ["write", ledger.contract, method, "--args", ...args], error)
 );
 await write("create-study", 0, "create", ["b#" + encoded.toString("hex")]);
 await state([]);
