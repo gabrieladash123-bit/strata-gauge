@@ -26,10 +26,7 @@ jobs:
           genvm-lint check contracts/strata_gauge.py
           python -m pytest tests/direct -q
       - name: Install proof tooling
-        run: |
-          npm ci --no-audit --no-fund
-          npm install --global genlayer@0.39.2 --no-audit --no-fund
-          echo "STRATA_CLI_PATH=$(npm root -g)/genlayer/dist/index.js" >> "$GITHUB_ENV"
+        run: npm ci --no-audit --no-fund
       - name: Deploy and check live consensus
         run: npm run prove
       - name: Replay public proof

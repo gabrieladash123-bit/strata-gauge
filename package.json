@@ -8,6 +8,7 @@
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
-    "genlayer-js": "1.1.8"
+    "genlayer-js": "1.1.8",
+    "viem": "2.58.6"
   }
 }
