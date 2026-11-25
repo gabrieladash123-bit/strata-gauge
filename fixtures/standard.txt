@@ -1,0 +1,13 @@
+Final service comparison memo — Standard workload.
+The reporting window was June 1 through June 30, UTC.
+A denotes Quartz. B denotes Basalt. For each arm the denominator is all
+jobs in this cohort with a completed telemetry record during the window.
+The measured outcome is jobs completed within the latency budget.
+
+During review we circulated the following provisional tally for this
+same outcome. The June closeout superseded it after late telemetry arrived.
+ROW 1 | A 50/87 | B 240/270
+
+The approved June closeout gives the observed latency-budget completion
+counts for the Standard workload, with both arms measured as defined above.
+ROW 2 | A 81/87 | B 234/270

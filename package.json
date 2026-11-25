@@ -1,0 +1,13 @@
+{
+  "name": "strata-gauge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prove": "node scripts/prove.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
+  }
+}

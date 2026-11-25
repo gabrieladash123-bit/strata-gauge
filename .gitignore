@@ -1,0 +1,9 @@
+node_modules/
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+.env.*
+*.key
+*.pem
+proofs/work/

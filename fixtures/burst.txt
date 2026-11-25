@@ -1,0 +1,11 @@
+June closeout memo — Burst workload, June 1 through June 30, UTC.
+The denominator for each arm is all jobs in this cohort with a completed
+telemetry record during that window. A denotes Quartz. B denotes Basalt.
+
+The approved final observed counts for jobs completed within the latency
+budget in the Burst workload are published below in that arm order.
+ROW 1 | A 192/263 | B 55/80
+
+The next tally covers a different operational metric, jobs with a hot
+cache on arrival. It uses the same window and denominator definition.
+ROW 2 | A 230/263 | B 70/80
