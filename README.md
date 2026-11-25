@@ -4,6 +4,8 @@
 
 An aggregate comparison can favor one system while every cohort favors the other. Different mixes of easy and hard workloads are enough. StrataGauge makes that reversal queryable by builders consuming benchmark, audit, or operational reports.
 
+[Contract source](contracts/strata_gauge.py) · [Evidence format](docs/evidence.md) · [StudioNet deployment](https://explorer-studio.genlayer.com/address/0x8c7D23f33d067D9E076F53c21dA2702CD3191ac4)
+
 | Synthetic workload | Quartz | Basalt | Higher rate |
 | --- | ---: | ---: | --- |
 | Standard | 81 / 87 | 234 / 270 | Quartz |
