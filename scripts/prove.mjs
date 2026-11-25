@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { abi, createAccount } from "genlayer-js";
+import { createAccount, createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
-import { encodeFunctionData, keccak256, zeroAddress } from "viem";
+import { keccak256 } from "viem";
 import {
   canonical, client, expectedState, finalized, getState, makePlan, rpc, sha256, sourcePath, verifyReceipt,
 } from "./proof-lib.mjs";
@@ -35,34 +35,42 @@ const ledger = {
 };
 const save = () => writeFile(journal, JSON.stringify(ledger, null, 2) + "\n");
 await save();
-const balances = await Promise.all(authors.map(({ address }) => rpc("eth_getBalance", [address, "latest"])));
-assert(balances.every(balance => BigInt(balance) === 0n), "Use unfunded StudioNet accounts");
-console.log("Prepared unfunded StudioNet callers", ...ledger.account_addresses);
+for (const { address } of authors) {
+  assert.equal(BigInt(await rpc("eth_getBalance", [address, "latest"])), 0n, "Use disposable StudioNet accounts");
+  await rpc("sim_fundAccount", [address, 1e18]);
+  assert(BigInt(await rpc("eth_getBalance", [address, "latest"])) >= 1_000_000_000_000_000_000n);
+}
+console.log("Funded disposable callers with StudioNet test credits", ...ledger.account_addresses);
 
 async function send(label, actor, method, args = [], expectedError = null) {
   const author = authors[actor];
   const deploy = method === undefined;
-  const recipient = deploy ? zeroAddress : ledger.contract;
-  const call = abi.calldata.encode(abi.calldata.makeCalldataObject(method, args, undefined));
-  const payload = abi.transactions.serialize(deploy ? [source, call, false] : [call, false]);
-  const consensus = studionet.consensusMainContract;
-  const data = encodeFunctionData({
-    abi: consensus.abi,
-    functionName: "addTransaction",
-    args: [
-      author.address, recipient, BigInt(studionet.defaultNumberOfInitialValidators),
-      BigInt(studionet.defaultConsensusMaxRotations), payload,
-    ],
-  });
-  const nonce = Number(BigInt(await rpc("eth_getTransactionCount", [author.address, "pending"])));
-  const signed = await author.signTransaction({
-    to: consensus.address, chainId: studionet.id, type: "legacy",
-    nonce, gasPrice: 0n, gas: 500_000n, value: 0n, data,
-  });
-  const entry = { label, sender: author.address, expected_error: expectedError, signed_hash: keccak256(signed) };
+  const entry = { label, sender: author.address, expected_error: expectedError };
   ledger.transactions.push(entry);
   await save();
-  const hash = await rpc("eth_sendRawTransaction", [signed]);
+  const signer = {
+    ...author,
+    async signTransaction(transaction) {
+      assert.equal(transaction.chainId, studionet.id);
+      assert(BigInt(transaction.value ?? 0) <= 100_000_000_000_000_000n, "Test fee limit exceeded");
+      const signed = await author.signTransaction(transaction);
+      entry.evm_hash = keccak256(signed);
+      await save();
+      return signed;
+    },
+  };
+  const sender = createClient({ chain: studionet, account: signer });
+  const estimate = await sender.estimateTransactionFees({
+    leaderTimeunitsAllocation: 100n, validatorTimeunitsAllocation: 200n, rotations: [0],
+  });
+  const fees = { distribution: estimate.distribution, feeValue: estimate.feeValue };
+  assert(fees.feeValue <= 100_000_000_000_000_000n, "Test fee limit exceeded");
+  entry.test_fee_deposit_wei = fees.feeValue.toString();
+  await save();
+  const options = { fees, consensusMaxRotations: 0 };
+  const hash = deploy
+    ? await sender.deployContract({ ...options, code: source, args })
+    : await sender.writeContract({ ...options, address: ledger.contract, functionName: method, args, value: 0n });
   assert.match(hash, /^0x[\da-f]{64}$/i);
   entry.hash = hash;
   await save();
