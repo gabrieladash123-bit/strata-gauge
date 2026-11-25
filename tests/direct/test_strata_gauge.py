@@ -12,6 +12,11 @@ COMMIT = "e" * 40
 SCENARIOS = ("standard", "burst")
 
 
+@pytest.fixture
+def contract(direct_deploy):
+    return direct_deploy(CONTRACT, sdk_version="v0.2.16")
+
+
 def plan_data():
     return {
         "arm_a": "Quartz",
@@ -45,9 +50,8 @@ def configure(vm, *, standard=2, burst=1, replacement_body=None):
         )
 
 
-def test_permissionless_out_of_order_completion(direct_vm, direct_deploy, direct_bob):
+def test_permissionless_out_of_order_completion(direct_vm, contract, direct_bob):
     configure(direct_vm)
-    contract = direct_deploy(CONTRACT)
     plan = plan_data()
     key = contract.create(encode(plan))
 
@@ -77,9 +81,8 @@ def test_permissionless_out_of_order_completion(direct_vm, direct_deploy, direct
         contract.record(key, 0)
 
 
-def test_validator_refetches_and_rejects_different_eligible_row(direct_vm, direct_deploy):
+def test_validator_refetches_and_rejects_different_eligible_row(direct_vm, contract):
     configure(direct_vm)
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan_data()))
     contract.record(key, 0)
     assert direct_vm.run_validator() is True
@@ -91,9 +94,8 @@ def test_validator_refetches_and_rejects_different_eligible_row(direct_vm, direc
     assert direct_vm.run_validator() is False
 
 
-def test_consensus_selection_is_consequential(direct_vm, direct_deploy):
+def test_consensus_selection_is_consequential(direct_vm, contract):
     configure(direct_vm, standard=1)
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan_data()))
     contract.record(key, 0)
     contract.record(key, 1)
@@ -101,9 +103,8 @@ def test_consensus_selection_is_consequential(direct_vm, direct_deploy):
     assert contract.get_study(key)["result"]["pooled_counts"] == [242, 350, 295, 350]
 
 
-def test_unresolved_does_not_consume_slot_and_can_retry(direct_vm, direct_deploy):
+def test_unresolved_does_not_consume_slot_and_can_retry(direct_vm, contract):
     configure(direct_vm, standard=0)
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan_data()))
     assert contract.record(key, 0) == {"index": 0, "status": "UNRESOLVED"}
     assert contract.get_study(key)["remaining"] == 2
@@ -114,9 +115,8 @@ def test_unresolved_does_not_consume_slot_and_can_retry(direct_vm, direct_deploy
 
 
 @pytest.mark.parametrize("invalid", [{"row": True}, {"row": 15}, {"row": 2, "confidence": 1}])
-def test_rejects_invalid_model_output(direct_vm, direct_deploy, invalid):
+def test_rejects_invalid_model_output(direct_vm, contract, invalid):
     configure(direct_vm, standard=invalid)
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan_data()))
     with direct_vm.expect_revert("Report acquisition or interpretation failed"):
         contract.record(key, 0)
@@ -129,19 +129,17 @@ def test_rejects_invalid_model_output(direct_vm, direct_deploy, invalid):
     b"ROW 2 | A 1/8 | B 2/8\nROW 2 | A 1/8 | B 2/8\n",
     b"ROW 2 | A 1/8 | B 2.0/8\n",
 ])
-def test_structurally_invalid_evidence_reverts(direct_vm, direct_deploy, body):
+def test_structurally_invalid_evidence_reverts(direct_vm, contract, body):
     configure(direct_vm, replacement_body=body)
     plan = plan_data()
     plan["cohorts"][0]["sha256"] = hashlib.sha256(body).hexdigest()
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan))
     with direct_vm.expect_revert("Report acquisition or interpretation failed"):
         contract.record(key, 0)
 
 
-def test_digest_mismatch_reverts(direct_vm, direct_deploy):
+def test_digest_mismatch_reverts(direct_vm, contract):
     configure(direct_vm, replacement_body=b"ROW 2 | A 81/87 | B 0/1\n")
-    contract = direct_deploy(CONTRACT)
     key = contract.create(encode(plan_data()))
     with direct_vm.expect_revert("Report acquisition or interpretation failed"):
         contract.record(key, 0)
@@ -154,16 +152,14 @@ def test_digest_mismatch_reverts(direct_vm, direct_deploy):
     ("name", "burst", "Invalid or duplicate cohort name"),
     ("sha256", "ABC", "Invalid or duplicate report digest"),
 ])
-def test_invalid_plan_fields(direct_vm, direct_deploy, field, value, error):
+def test_invalid_plan_fields(direct_vm, contract, field, value, error):
     plan = plan_data()
     plan["cohorts"][0][field] = value
-    contract = direct_deploy(CONTRACT)
     with direct_vm.expect_revert(error):
         contract.create(encode(plan))
 
 
-def test_canonical_plan_and_range_guards(direct_vm, direct_deploy):
-    contract = direct_deploy(CONTRACT)
+def test_canonical_plan_and_range_guards(direct_vm, contract):
     plan = plan_data()
     key = contract.create(encode(plan))
     with direct_vm.expect_revert("Study already exists"):
