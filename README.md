@@ -4,7 +4,7 @@
 
 An aggregate comparison can favor one system while every cohort favors the other. Different mixes of easy and hard workloads are enough. StrataGauge makes that reversal queryable by builders consuming benchmark, audit, or operational reports.
 
-[Contract source](contracts/strata_gauge.py) · [Evidence format](docs/evidence.md) · [StudioNet deployment](https://explorer-studio.genlayer.com/address/0x8c7D23f33d067D9E076F53c21dA2702CD3191ac4)
+[Contract source](contracts/strata_gauge.py) · [Evidence format](docs/evidence.md) · [StudioNet proof](#studionet-proof)
 
 | Synthetic workload | Quartz | Basalt | Higher rate |
 | --- | ---: | ---: | --- |
@@ -52,7 +52,19 @@ python -m pytest tests/direct -q
 npm ci
 ```
 
-The StudioNet workflow deploys one instance, records the two cohorts out of order, verifies a rejected duplicate, and reads back the result and the deployed source. The verifier (when given a proof ledger) replays those public checks with read-only RPC.
+The StudioNet workflow uses disposable faucet-funded accounts. Its proof runner records Burst before Standard and checks the incomplete state before the last cohort publishes the result. It also checks that the finalized duplicate reverts and preserves the existing result.
+
+## StudioNet proof
+
+[Deployed contract](https://explorer-studio.genlayer.com/address/0x8c7D23f33d067D9E076F53c21dA2702CD3191ac4) · [Finalized receipts and exact state](proofs/studionet.json)
+
+The synthetic study returned `SIMPSON_REVERSAL` with pooled difference `-8/175` and equal-weight standardized difference `195689/3660960`. Four transactions executed successfully and the duplicate reverted with `Cohort already recorded`. All five receipts finalized with a majority. Both accepted observations retain the selected literal row and its source commitment.
+
+```sh
+npm run verify
+```
+
+The verifier uses read-only StudioNet RPC to check the receipts, compare deployed source bytes, and reproduce the exact stored result from the proof ledger.
 
 ## Scope
 

@@ -1,0 +1,174 @@
+{
+  "network": "studionet",
+  "chain_id": 61999,
+  "repository": "gabrieladash123-bit/strata-gauge",
+  "revision": "a4ba33aa229f8076e4ca08da5963502910bd7e49",
+  "study": "f7f28e0a22a6eef84ba25863a504bc50a13f51d7d8fbe03bb0c6b2a63525d9fe",
+  "source_sha256": "f29a2f0b9a31246cb49100812c7e09197e25dc5dca38fca5aefede401277e40a",
+  "account_addresses": [
+    "0x41C32b5553f5d489F3E4A8Cbe693624C759ceBcA",
+    "0x99c005c557009dFCdb83e3a1a70A5030ab36780F",
+    "0x1A4c721A36757Ea8EF0aB1221302D3548aeEA0Ac",
+    "0x6ceC8a7069051b9760160C537A38765ddDBd31cB"
+  ],
+  "transactions": [
+    {
+      "label": "deploy",
+      "sender": "0x41C32b5553f5d489F3E4A8Cbe693624C759ceBcA",
+      "expected_error": null,
+      "test_fee_deposit_wei": "25000000000002588",
+      "evm_hash": "0xb03fe75e828610bb85b3d719abc0e7304f58cacf5a905a538748277b5b3bf582",
+      "hash": "0xb03fe75e828610bb85b3d719abc0e7304f58cacf5a905a538748277b5b3bf582",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "agree": 3,
+      "votes": 5
+    },
+    {
+      "label": "create-study",
+      "sender": "0x1A4c721A36757Ea8EF0aB1221302D3548aeEA0Ac",
+      "expected_error": null,
+      "test_fee_deposit_wei": "25000000000002588",
+      "evm_hash": "0xbf208c5943bda6685339ad15061f8c8f5dd431633ff41725ff4e47abde3a53a5",
+      "hash": "0xbf208c5943bda6685339ad15061f8c8f5dd431633ff41725ff4e47abde3a53a5",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "agree": 3,
+      "votes": 5
+    },
+    {
+      "label": "record-burst",
+      "sender": "0x6ceC8a7069051b9760160C537A38765ddDBd31cB",
+      "expected_error": null,
+      "test_fee_deposit_wei": "25000000000002588",
+      "evm_hash": "0xc213f0ec2ca3f62156763bd1fdc910fd573c26f8f360a7deb7e10db7db382765",
+      "hash": "0xc213f0ec2ca3f62156763bd1fdc910fd573c26f8f360a7deb7e10db7db382765",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "agree": 4,
+      "votes": 5
+    },
+    {
+      "label": "record-standard",
+      "sender": "0x1A4c721A36757Ea8EF0aB1221302D3548aeEA0Ac",
+      "expected_error": null,
+      "test_fee_deposit_wei": "25000000000002588",
+      "evm_hash": "0x06f022164370517043ad85697c0687057e597c1124d6efac3d97a4f4559bcd6e",
+      "hash": "0x06f022164370517043ad85697c0687057e597c1124d6efac3d97a4f4559bcd6e",
+      "status": "FINALIZED",
+      "execution": "SUCCESS",
+      "agree": 3,
+      "votes": 5
+    },
+    {
+      "label": "reject-duplicate",
+      "sender": "0x6ceC8a7069051b9760160C537A38765ddDBd31cB",
+      "expected_error": "Cohort already recorded",
+      "test_fee_deposit_wei": "25000000000002588",
+      "evm_hash": "0x014ff2c82dde9a03368abe373ac60580f63b313de68051220114ebec97277625",
+      "hash": "0x014ff2c82dde9a03368abe373ac60580f63b313de68051220114ebec97277625",
+      "status": "FINALIZED",
+      "execution": "ERROR",
+      "agree": 3,
+      "votes": 5
+    }
+  ],
+  "contract": "0x8c7D23f33d067D9E076F53c21dA2702CD3191ac4",
+  "readback": {
+    "state": {
+      "plan": {
+        "arm_a": "Quartz",
+        "arm_b": "Basalt",
+        "cohorts": [
+          {
+            "name": "Standard",
+            "sha256": "7d5971f72602fbcc8a4e0dbed439b4e1d19d56ac6b56f560fcd17e0b6bb25284",
+            "source": "gabrieladash123-bit/strata-gauge/a4ba33aa229f8076e4ca08da5963502910bd7e49/fixtures/standard.txt",
+            "weight": 1
+          },
+          {
+            "name": "Burst",
+            "sha256": "394edc74f27abad17f848aec189679295e5cfa451cfa8eded1dd1595c9941afd",
+            "source": "gabrieladash123-bit/strata-gauge/a4ba33aa229f8076e4ca08da5963502910bd7e49/fixtures/burst.txt",
+            "weight": 1
+          }
+        ],
+        "outcome": "jobs completed within the latency budget"
+      },
+      "remaining": 0,
+      "result": {
+        "cohorts": [
+          {
+            "cohort": "Standard",
+            "counts": [
+              81,
+              87,
+              234,
+              270
+            ],
+            "difference": {
+              "denominator": "435",
+              "numerator": "28"
+            },
+            "weight": 1
+          },
+          {
+            "cohort": "Burst",
+            "counts": [
+              192,
+              263,
+              55,
+              80
+            ],
+            "difference": {
+              "denominator": "4208",
+              "numerator": "179"
+            },
+            "weight": 1
+          }
+        ],
+        "finding": "SIMPSON_REVERSAL",
+        "pooled_counts": [
+          273,
+          350,
+          289,
+          350
+        ],
+        "pooled_difference": {
+          "denominator": "175",
+          "numerator": "-8"
+        },
+        "standardized_difference": {
+          "denominator": "3660960",
+          "numerator": "195689"
+        }
+      }
+    },
+    "observations": [
+      {
+        "counts": [
+          81,
+          87,
+          234,
+          270
+        ],
+        "line": "ROW 2 | A 81/87 | B 234/270",
+        "row": 2,
+        "sha256": "7d5971f72602fbcc8a4e0dbed439b4e1d19d56ac6b56f560fcd17e0b6bb25284",
+        "source": "gabrieladash123-bit/strata-gauge/a4ba33aa229f8076e4ca08da5963502910bd7e49/fixtures/standard.txt"
+      },
+      {
+        "counts": [
+          192,
+          263,
+          55,
+          80
+        ],
+        "line": "ROW 1 | A 192/263 | B 55/80",
+        "row": 1,
+        "sha256": "394edc74f27abad17f848aec189679295e5cfa451cfa8eded1dd1595c9941afd",
+        "source": "gabrieladash123-bit/strata-gauge/a4ba33aa229f8076e4ca08da5963502910bd7e49/fixtures/burst.txt"
+      }
+    ]
+  }
+}
